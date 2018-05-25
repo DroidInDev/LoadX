@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/video_feed"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp"
+        android:padding="@dimen/_10sdp"
+        app:contentInsetStartWithNavigation="0dp"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        android:minHeight="?attr/actionBarSize"
+        android:background="@color/app_color"
+        >
+    </android.support.v7.widget.Toolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar"
+        android:layout_marginTop="30dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/txtDriverName"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:hint="@string/driver_name"
+                android:background="@color/white"
+                android:gravity="center_vertical"
+                android:singleLine="true"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@id/txtDriverName"
+                android:src="@drawable/add_icon"
+                android:visibility="invisible" />
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/txtDriverName"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/edit_txt_line" />
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/layoutLicenseNo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:gravity="center_horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/txtDriverLicenseNo"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:hint="@string/driver_license_no"
+                android:background="@color/white"
+                android:inputType="text"
+                android:maxLength="20"
+                android:imeOptions="actionDone"
+                android:singleLine="true"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@id/txtDriverLicenseNo"
+                android:src="@drawable/add_icon"
+                android:visibility="invisible" />
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/txtDriverLicenseNo"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/edit_txt_line" />
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/layoutLicense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/txtLicense"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:gravity="center_vertical"
+                android:hint="@string/licence_copy"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/imgGetLicence"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@id/txtLicense"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="getLicenseCopyImage"
+                android:src="@drawable/add_icon" />
+
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/txtLicense"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/edit_txt_line" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/layoutPanCopy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/txtPanCopy"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:gravity="center_vertical"
+                android:hint="@string/pan_copy"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/imgPanCopy"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@id/txtPanCopy"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="getPanCopyImage"
+                android:src="@drawable/add_icon" />
+
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/txtPanCopy"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/edit_txt_line" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/layoutPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_marginStart="15dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/txtPhoto"
+                android:layout_width="200dp"
+                android:layout_height="60dp"
+                android:gravity="center_vertical"
+                android:hint="@string/photo"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/imgPhoto"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@id/txtPhoto"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="getUserPhoto"
+                android:src="@drawable/add_icon" />
+
+            <ImageView
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/txtPhoto"
+                android:layout_marginEnd="15dp"
+                android:src="@drawable/edit_txt_line" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/btnSubmit"
+            android:layout_width="130dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/button_bg"
+            android:gravity="center"
+            android:onClick="submitProfileData"
+            android:text="@string/submit"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/btnSkip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:onClick="skipToHome"
+            android:text="@string/skip"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="@color/app_color"
+            android:textSize="18sp" />
+    </LinearLayout>
+    <!--android:drawableEnd="@drawable/icon_skip"-->
+    <com.cn.loadx.customUserInterface.LoadingIndicatorView
+        android:id="@+id/animatedLoader"
+        style="@style/AVLoadingIndicatorView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible" />
+    </RelativeLayout>

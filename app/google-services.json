@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "645900061804",
+    "firebase_url": "https://loadx-bcc01.firebaseio.com",
+    "project_id": "loadx-bcc01",
+    "storage_bucket": "loadx-bcc01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645900061804:android:0a543cf12d33a95b",
+        "android_client_info": {
+          "package_name": "com.cn.loadx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "645900061804-auej1abhsvvhie3n485uulpfj8vcbab6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cn.loadx",
+            "certificate_hash": "d926be8fa692ac0978aa7ef3f17a1dcb8b6bb3af"
+          }
+        },
+        {
+          "client_id": "645900061804-9ra2pln4j5s2obtjpheooafm7ef73o3k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cn.loadx",
+            "certificate_hash": "64adc466e7e5306c15984ec16becb0248b6c66e7"
+          }
+        },
+        {
+          "client_id": "645900061804-aaqfri1tsv6h2abuh9bq56he5avqc4sk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBy1tzHL2YH5Xe_mlyuVQ-J20FgaDSr8io"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "645900061804-aaqfri1tsv6h2abuh9bq56he5avqc4sk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

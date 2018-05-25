@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent_color">
+<TextView
+    android:id="@+id/txtDlgTittle"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/no_ongoig_trip"
+    android:gravity="center"
+    android:layout_centerHorizontal="true"
+    android:textColor="@color/white"
+    android:background="@drawable/trip_details_bar"
+    android:layout_alignParentTop="true"
+    android:textSize="14sp"/>
+    <!--<ImageView
+        android:id="@+id/imgTruck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtDlgTittle"
+        android:layout_marginTop="50dp"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"
+        android:src="@drawable/loadx_appicon"/>-->
+
+    <TextView
+        android:id="@+id/txtBtnLoadTry"
+        android:layout_width="@dimen/_90sdp"
+        android:layout_height="@dimen/_30sdp"
+        android:layout_below="@+id/txtDlgTittle"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="85dp"
+        android:background="@drawable/button_bg"
+        android:gravity="center"
+        android:text="@string/try_again"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:onClick="onTryAgainCLicked"
+        android:textSize="16sp" />
+</RelativeLayout>

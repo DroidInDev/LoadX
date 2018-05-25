@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:id="@+id/imgCurrentLoction"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="12dp"
+        android:background="@drawable/go_current"
+        android:onClick="onCurrentLocationClick"/>
+  <!--  <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:id="@+id/imgRouteView"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/imgCurrentLoction"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/go_route"
+        android:onClick="onRouteViewClick"/>-->
+<ImageView
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:id="@+id/imgRouteDirection"
+    android:layout_alignParentEnd="true"
+    android:layout_marginEnd="12dp"
+    android:layout_below="@id/imgCurrentLoction"
+    android:src="@drawable/direction_icon"
+    android:onClick="onDirectionImgClick"/>
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+        <TableRow android:id="@+id/trowTrip">
+
+            <FrameLayout
+                android:id="@+id/frame_trip_Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:visibility="visible" />
+        </TableRow>
+        <TableRow android:id="@+id/trowLoad">
+
+            <FrameLayout
+                android:id="@+id/frame_loading_Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:visibility="visible">
+
+            </FrameLayout>
+        </TableRow>
+
+
+    </TableLayout>
+
+    <RelativeLayout
+        android:id="@+id/tripBtnLayout"
+        android:layout_width="280dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/layout_bg"
+        android:visibility="gone">
+
+        <RelativeLayout
+            android:layout_width="260dp"
+            android:layout_height="40dp"
+            android:layout_margin="10dp"
+            android:background="@drawable/trip_details_bar"
+            tools:ignore="UselessParent">
+
+            <TextView
+                android:id="@+id/txtBottomBarTittle"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_toStartOf="@+id/imageView"
+                android:background="@drawable/trip_details_bar"
+                android:text="@string/trip_details"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignTop="@+id/txtBottomBarTittle"
+                android:layout_marginEnd="14dp"
+                android:src="@drawable/down_arrow_xh" />
+        </RelativeLayout>
+    </RelativeLayout>
+    <FrameLayout
+        android:id="@+id/frame_layout_NoTriip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
+        <include
+            layout="@layout/dialog_no_trip"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>    <FrameLayout
+        android:id="@+id/frame_layout_request_failed"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible">
+        <include
+            layout="@layout/no_internet_map_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+    <com.cn.loadx.customUserInterface.LoadingIndicatorView
+        android:id="@+id/animatedLoader"
+        style="@style/AVLoadingIndicatorView.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+</RelativeLayout>

@@ -1,0 +1,92 @@
+<resources>
+    <string name="app_name">LoadX</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="check_network_connection">App needs internet connection to display trip information. Please Connect to Internet and Try Again.</string>
+    <string name="no_internet">No Internet Connection</string>
+    <string name="ok">OK</string>
+    <string name="rationale_location">App needs location permission to display trip information.</string>
+    <string name="rationale_call_phone">App needs phone permission to make a phone call.</string>
+    <string name="confirm_mobile">Confirm mobile number</string>
+    <string name="verify_mobile">Verify your mobile number to get</string>
+    <string name="mobile_more">an OTP to login.</string>
+    <string name="continue_txt">Continue</string>
+    <string name="enter_otp">Enter OTP</string>
+    <string name="otp_sent">(4 digit number sent to your mobile number</string>
+    <string name="login">Login</string>
+    <string name="resendOtp">Resend OTP</string>
+    <string name="profile">Profile</string>
+    <string name="driver_name">Driver name *</string>
+    <string name="licence_copy">Driving License copy *</string>
+    <string name="pan_copy">PAN Copy</string>
+    <string name="photo">Photo</string>
+    <string name="weight_txt">Weight: </string>
+
+    <string name="submit">SUBMIT</string>
+    <string name="rationale_storage_license">LoadX needs storage permission to upload your License copy.</string>
+    <string name="rationale_storage_pan">LoadX needs storage permission to upload your pan copy.</string>
+    <string name="rationale_storage_photo">LoadX needs storage permission to upload your photo.</string>
+    <string name="logout">Logout</string>
+    <string name="trips">Trips</string>
+    <string name="google_maps_key">AIzaSyCQY79bv3TA8kD1BfUWI0_TGUhKNFw09Wg</string>
+    <!--<string name="google_maps_key">AIzaSyBCzz2-z5byOi22KiXbg2WeYdcWWJ6o9ys</string>-->
+    <string name="no_ongoig_trip">No ongoing trip at the moment.</string>
+    <string name="no_trip">No trip</string>
+    <string name="customer">Customer</string>
+    <string name="trip_details">Trip Details</string>
+    <string name="trip_supervisor">Trip Supervisor</string>
+    <string name="call_no">CALL</string>
+    <string name="txt_customer_care">Customer Care</string>
+    <string name="message_no">MESSAGE</string>
+    <string name="loading_weight">Loading Weight</string>
+    <string name="pod_copy">POD Copy</string>
+    <string name="loading_charge">Loading Charge</string>
+
+
+
+    <!-- Error strings geofence-->
+    <string name="geofence_not_available">Geofence service is not available now</string>
+    <string name="geofence_too_many_geofences">Your app has registered too many geofences</string>
+    <string name="geofence_too_many_pending_intents">
+        You have provided too many PendingIntents to the addGeofences() call
+    </string>
+    <string name="unknown_geofence_error">
+        Unknown error: the Geofence service is not available now
+    </string>
+    <string name="geofence_transition_invalid_type">
+        Geofence transition error: invalid transition type %1$d
+    </string>
+
+    <!-- Transition type strings -->
+    <string name="geofence_transition_entered">Arrived at your pick up point</string>
+    <string name="geofence_transition_exited">Exited</string>
+    <string name="unknown_geofence_transition">Unknown Transition</string>
+
+    <string name="geofence_transition_notification_text">
+        Update Loading detail.
+    </string>
+
+    <string name="insufficient_permissions">Insufficient permissions.</string>
+    <string name="permission_rationale">Location permission is needed for core functionality</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core
+        functionality.</string>
+    <string name="settings">Settings</string>
+    <string name="on_going_trip">On Trip</string>
+    <string name="driver_license_no">License no*</string>
+    <string name="cancel">Cancel</string>
+    <string name="weight_slip">Weight slip</string>
+    <string name="rationale_storage">LoadX needs storage permission to upload your data.</string>
+    <string name="view_details">VIEW DETAILS</string>
+    <string name="rationale_ask_ok">OK</string>
+    <string name="rationale_ask_cancel">Cancel</string>
+    <string name="try_again">Try Again!</string>
+    <string name="material_txt">Material: </string>
+    <string name="skip">"SKIP"</string>
+    <string name="load_details">Loading details</string>
+    <string name="un_load_details">Unloading details</string>
+    <string name="retry">RETRY</string>
+    <string name="txt_service_request_failed">There seems a problem updating the trip details.This may be due to poor internet connectivity.</string>
+</resources>
