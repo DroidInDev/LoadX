@@ -43,54 +43,71 @@ public class LoadXFirebaseMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "From: " + from);
 
         if (remoteMessage.getNotification() != null) {
-           /* Log.d(TAG, remoteMessage.getNotification().getBody());
+            Log.d(TAG, remoteMessage.getNotification().getBody()+" "+remoteMessage.getNotification().getTitle());
+            Log.d(TAG, remoteMessage.getNotification().toString());
+            if(remoteMessage.getNotification().getBody()!=null&&remoteMessage.getNotification().getTitle()!=null)
+            {
+                String pagetittle = remoteMessage.getNotification().getTitle();
+                String action = remoteMessage.getNotification().getBody();
+                if(pagetittle.equals("home")) {
+                    if (action.equals("reload")){
+                        broadcastPushNotification(pagetittle, action);
+                    return;
+                }
+                }
+            }
             try {
-                JSONObject notificationObject = new JSONObject(remoteMessage.getNotification().getBody());
+                JSONObject notificationObject = new JSONObject(remoteMessage.getData());
                  message=notificationObject.getString("body");
                  tittle = notificationObject.getString("title");
             } catch (JSONException e) {
                 Log.d(TAG," Not "+e.getMessage());
                 e.printStackTrace();
-            }*/
+            }
         }
         if (remoteMessage == null)
             return;
 
         // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
+        //if (remoteMessage.getData().size() > 0) {
+        Log.d(TAG,"size "+remoteMessage.getData().size());
             Map<String, String> mapNotify = remoteMessage.getData();
 
             String payload_extra = mapNotify.get("extra");
             // String tittle =mapNotify.get("title");
-            //String payload=remoteMessage.getData().toString();
+            String payloadStr=remoteMessage.getData().toString();
             if (payload_extra != null) {
-                JSONObject jsonObject = null;
+                String page = null;
                 try {
-                    jsonObject = new JSONObject(payload_extra);
-                  /*  if(jsonObject.getString("type_id").equals("8"))
-                        return;*/
+                    payload = new JSONObject(payload_extra);
+                    if(ApplicationUtil.contains(payload,"page"))
+                        page = payload.getString("page");
+                    if(ApplicationUtil.contains(payload,"body"))
+                        message = payload.getString("body");
                 } catch (JSONException e) {
+                    Log.d(TAG, e.getMessage());
                     e.printStackTrace();
                 }
             }
+
             Log.d(TAG, "Data Payload: " + payload_extra);
             Log.d(TAG, "Message: " + message);
-
+            if(payload_extra!=null)
             handleDataMessage(tittle, message, payload_extra);
 
-        }
+      //  }
     }
 
 
-    private void broadcastPushNotification(String message, String extra) {
+    private void broadcastPushNotification(String page, String message) {
         try {
             Intent pushNotification = new Intent();
+            pushNotification.putExtra("page",page );
             pushNotification.putExtra("message", message);
-            pushNotification.putExtra("extra", extra);
             pushNotification.setAction(FCMConfig.PUSH_NOTIFICATION);
             sendBroadcast(pushNotification);
         } catch (Exception ex) {
-            Log.e(TAG, "Pushnotify Exception:" + ex.getLocalizedMessage());
+            Log.e(TAG, "Exception:" + ex.getLocalizedMessage());
         }
     }
 
@@ -100,10 +117,6 @@ public class LoadXFirebaseMessagingService extends FirebaseMessagingService {
         String page = null;
         try {
             payload = new JSONObject(payload_extra);
-            if(ApplicationUtil.contains(payload,"page"))
-            page = payload.getString("page");
-            if(ApplicationUtil.contains(payload,"message"))
-            message = payload.getString("message");
 
         } catch (JSONException e) {
             Log.d(TAG, e.getMessage());
@@ -123,8 +136,8 @@ public class LoadXFirebaseMessagingService extends FirebaseMessagingService {
                 if (payload != null) {
                     if(ApplicationUtil.contains(payload,"type"))
                     type = payload.getString("type");
-                    if(ApplicationUtil.contains(payload,"message"))
-                    notifyMessage = payload.getString("message");
+                    if(ApplicationUtil.contains(payload,"body"))
+                    notifyMessage = payload.getString("body");
                     if(ApplicationUtil.contains(payload,"page"))
                     notifyPage = payload.getString("page");
                     Log.d(TAG, " message FGND " + message);

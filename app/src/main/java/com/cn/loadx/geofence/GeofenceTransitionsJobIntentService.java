@@ -34,11 +34,16 @@ import android.util.Log;
 import com.cn.loadx.R;
 import com.cn.loadx.activity.HomeActivity;
 import com.cn.loadx.activity.SplashActivity;
+import com.cn.loadx.util.ApplicationUtil;
+import com.cn.loadx.util.SharedPrefsUtils;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.cn.loadx.util.AppConstants.KEY_LOADING_IN_TIME;
+import static com.cn.loadx.util.AppConstants.KEY_LOAD_POD_URL;
 
 /**
  * Listener for geofence transition changes.
@@ -207,6 +212,7 @@ public class GeofenceTransitionsJobIntentService extends JobIntentService {
         String transitionStr = "";
         switch (transitionType) {
             case Geofence.GEOFENCE_TRANSITION_ENTER:
+                SharedPrefsUtils.setStringPreference(getApplicationContext(), KEY_LOADING_IN_TIME, ApplicationUtil.getDatenTime());
                 if(geoId.equals("S"))
                 transitionStr = "Upload Loading Details";
                 else if(geoId.equals("D1")||geoId.equals("D2"))

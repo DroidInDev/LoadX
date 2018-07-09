@@ -9,23 +9,29 @@ import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -43,6 +49,7 @@ import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -65,6 +72,7 @@ import com.cn.loadx.network.api.APIInterface;
 import com.cn.loadx.network.api.MapsAPIInterface;
 import com.cn.loadx.network.mapsPojo.Example;
 import com.cn.loadx.network.pojo.OnGoingTripDetails;
+import com.cn.loadx.notification.FCMConfig;
 import com.cn.loadx.service.LoadXLocationUpdatesService;
 import com.cn.loadx.util.ApplicationUtil;
 import com.cn.loadx.util.ConnectivityReceiver;
@@ -103,10 +111,14 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +135,7 @@ import static com.cn.loadx.geofence.GeoConstants.GEOFENCE_RADIUS_IN_METERS;
 import static com.cn.loadx.util.AppConstants.CUSTOMER_CARE_NO;
 import static com.cn.loadx.util.AppConstants.DRIVER_ID;
 import static com.cn.loadx.util.AppConstants.DRIVER_NAME;
+import static com.cn.loadx.util.AppConstants.IMAGE_DIRECTORY;
 import static com.cn.loadx.util.AppConstants.KEY_DEST_ADDRESS;
 import static com.cn.loadx.util.AppConstants.KEY_DRI_IMG_URL;
 import static com.cn.loadx.util.AppConstants.KEY_TRIP_ID;
@@ -143,7 +156,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String[] PHONE_CALL_PERMISSION = {Manifest.permission.CALL_PHONE};
     private static final String[] PHONE_CALL_AND_SMS_PERMISSION = {Manifest.permission.CALL_PHONE, Manifest.permission.SEND_SMS};
 
-
+    private static final int CAMERA = 1;
+    private static final int GALLERY = 2;
     Toolbar toolbar;
     private View navHeader;
     private TextView txtName;
@@ -158,10 +172,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int RC_PHONE_CALL_AND_SMS_PERMS = 1003;
 
     private static final String[] STORAGE_PERMISSION = {Manifest.permission.READ_EXTERNAL_STORAGE};
-    private static final int RC_STORAGE_PERM_POD = 1005;
+    private static final int RC_STORAGE_PERM_IMAGE_PICKUP = 1005;
     private static final int RC_STORAGE_PERM_WS = 1006;
+    private static final int RC_STORAGE_PERM_POD_BACK = 1007;
     private static final int PICK_POD_IMG_REQ = 3005;
     private static final int PICK_WS_IMG_REQ = 3006;
+    private static final int PICK_POD_IMG_BACK_REQ = 3007;
     /**
      * Provides access to the Fused Location Provider API.
      */
@@ -248,7 +264,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     int height;
     int width;
     private FrameLayout frameLayoutNoInternet;
-
+    boolean isLoactionUpdateConnected;
+    private int TYPE_OF_IMG_REQ;
+    private int IMG_SELECTED_VIA;
     public void onCurrentLocationClick(View view) {
         if (isTripLoaded) {
             if (isCurrentLocationSelected) {
@@ -377,11 +395,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             mBound = false;
         }
     };
-
+    ReloadBroadCastReceiver reloadBroadCastReceiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        isLoactionUpdateConnected = false;
         apiInterface = APIClient.getClient().create(APIInterface.class);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -440,6 +459,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         mRequestingLocationUpdates = false;
         isTripLoaded = false;
         isCurrentLocationSelected = true;
+        reloadBroadCastReceiver = new ReloadBroadCastReceiver();
+
+     /*   LocalBroadcastManager.getInstance(this).registerReceiver(
+                ReloadBroadCastReceiver,
+                new IntentFilter(FCMConfig.PUSH_NOTIFICATION));*/
         // Kick off the process of building the LocationCallback, LocationRequest, and
         // LocationSettingsRequest objects.
         reFormatContainerView();
@@ -452,7 +476,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         mGeofencePendingIntent = null;
         mGeofencingClient = LocationServices.getGeofencingClient(this);
         checkNetworkConnection();
+        // Register the local broadcast
+
         Log.d("LDHOME ", "HOME oncreate");
+
     }
 
     private void checkNetworkConnection() {
@@ -590,6 +617,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void getTripDetails() {
+        callLocationUpdateService();
         if (!isFinishing() && loadingIndicatorView != null)
             loadingIndicatorView.smoothToShow();
         int userID = SharedPrefsUtils.getIntegerPreference(HomeActivity.this, DRIVER_ID, 0);
@@ -646,6 +674,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    private void callLocationUpdateService() {
+        try {
+            bindService(new Intent(this, LoadXLocationUpdatesService.class), mServiceConnection,
+                    Context.BIND_AUTO_CREATE);
+            mService.requestLocationUpdates();
+        } catch (Exception e) {
+            Log.d("LDHOME ", "On START");
+            e.printStackTrace();
+        }
+    }
+
     private void reloadDataRequest() {
         Dialog removeDialog = ApplicationUtil.showDialog(HomeActivity.this, "Try Again", new DialogInterface.OnClickListener() {
             @Override
@@ -668,6 +707,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onPause() {
         super.onPause();
+
         Log.d(ApplicationUtil.APPTAG, "Home onpause");
         try {
             if (loadingIndicatorView != null)
@@ -1131,10 +1171,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (requestCode == RC_PHONE_CALL_AND_SMS_PERMS) {
             checkPhoneCallAndSMSPermission(RC_PHONE_CALL_AND_SMS_PERMS);
             // ApplicationUtil.getmInstance().callSupervisorDialog(HomeActivity.this, onGoingTripDetails.getTripResponse().getLoadDetails().getSupervisorAtSourceName(), onGoingTripDetails.getTripResponse().getLoadDetails().getSupervisorAtSourceContact());
-        } else if (requestCode == RC_STORAGE_PERM_POD) {
-            pickPODFromGallery();
-        } else if (requestCode == RC_STORAGE_PERM_WS) {
-            pickWSFromGallery();
+        } else if (requestCode == RC_STORAGE_PERM_IMAGE_PICKUP) {
+          showImagePickDialog();
         }
     }
 
@@ -1167,6 +1205,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        if(reloadBroadCastReceiver!=null)
+        registerReceiver(reloadBroadCastReceiver,new IntentFilter(FCMConfig.PUSH_NOTIFICATION));
         //reFormatContainerView();
 
 
@@ -1283,15 +1323,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initLoadUnloadFragment(String tripStatus) {
-        try {
-            bindService(new Intent(this, LoadXLocationUpdatesService.class), mServiceConnection,
-                    Context.BIND_AUTO_CREATE);
-            mService.requestLocationUpdates();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.d("LDHOME ", e.getMessage());
-        }
         Log.d("LDHOME ", "update " + update);
         frameLayoutLoad.setVisibility(View.VISIBLE);
         FragmentManager fragmentManager = getFragmentManager();
@@ -1360,18 +1391,33 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case PICK_POD_IMG_REQ: {
-                if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                    Uri uri = data.getData();
-                    String url = FileUtil.getFileName(HomeActivity.this, uri);
-                    try {
-                        File actualImage = FileUtil.from(this, data.getData());
-                        if (loadUnloadFragment != null)
-                            loadUnloadFragment.setPODCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+                Uri uri = null;
+                String url = null;
+                String path = null;
+                if(IMG_SELECTED_VIA==GALLERY) {
+                    if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                        try {
+                            uri = data.getData();
+                            url = FileUtil.getFileName(HomeActivity.this, uri);
+                            File actualImage = FileUtil.from(this, data.getData());
+                            if (loadUnloadFragment != null)
+                                loadUnloadFragment.setPODCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
 
-                    } catch (IOException e) {
-                        Toast.makeText(HomeActivity.this, "Image not Readable. Try Agin!", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
+                        } catch (IOException e) {
+                            Toast.makeText(HomeActivity.this, "Image not Readable. Try Agin!", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
                     }
+                }
+                if(IMG_SELECTED_VIA==CAMERA){
+                    Bitmap thumbnail  = (Bitmap) data.getExtras().get("data");
+                    path = saveImage(thumbnail);
+                    url = path;
+                    File actualImage = new File(path);
+                    if (loadUnloadFragment != null)
+                        loadUnloadFragment.setPODCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+
+                }
 
                     /*try {
                         Bitmap bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
@@ -1389,22 +1435,83 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         e.printStackTrace();
                     }*/
                     break;
+
+            }
+            case PICK_POD_IMG_BACK_REQ: {
+                Uri uri = null;
+                String url = null;
+                String path = null;
+                if(IMG_SELECTED_VIA==GALLERY) {
+                    if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                        try {
+                            uri = data.getData();
+                            url = FileUtil.getFileName(HomeActivity.this, uri);
+                            File actualImage = FileUtil.from(this, data.getData());
+                            if (loadUnloadFragment != null)
+                                loadUnloadFragment.setPODBackCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+
+                        } catch (IOException e) {
+                            Toast.makeText(HomeActivity.this, "Image not Readable. Try Agin!", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
+                    }
                 }
+                if(IMG_SELECTED_VIA==CAMERA){
+                    Bitmap thumbnail  = (Bitmap) data.getExtras().get("data");
+                    path = saveImage(thumbnail);
+                    url = path;
+                    File actualImage = new File(path);
+                    if (loadUnloadFragment != null)
+                        loadUnloadFragment.setPODBackCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+
+                }
+
+                    /*try {
+                        Bitmap bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        bmp.compress(Bitmap.CompressFormat.PNG, 70, stream);
+                        byte[] byteArray = stream.toByteArray();
+                        String encodedString = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                        url = FileUtil.getFileName(HomeActivity.this, uri);
+                        if (loadUnloadFragment != null)
+                            loadUnloadFragment.setPODCopy(encodedString, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+                        bmp.recycle();
+                        bmp = null;
+                        stream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }*/
+                    break;
+
             }
             case PICK_WS_IMG_REQ: {
-                if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                    Uri uri = data.getData();
-                    String url = FileUtil.getFileName(HomeActivity.this, uri);
-                    try {
-                        File actualImage = FileUtil.from(this, data.getData());
+                Uri uri = null;
+                String url = null;
+                String path = null;
+                if(IMG_SELECTED_VIA==GALLERY) {
+                    if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                        try {
+                            uri = data.getData();
+                            url = FileUtil.getFileName(HomeActivity.this, uri);
+                            File actualImage = FileUtil.from(this, data.getData());
+                            if (loadUnloadFragment != null)
+                                loadUnloadFragment.setWSCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
+
+                        } catch (IOException e) {
+                            Toast.makeText(HomeActivity.this, "Image not Readable. Try Agin!", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                    if(IMG_SELECTED_VIA==CAMERA){
+                       Bitmap thumbnail  = (Bitmap) data.getExtras().get("data");
+                        path = saveImage(thumbnail);
+                        url = path;
+                        File actualImage = new File(path);
                         if (loadUnloadFragment != null)
                             loadUnloadFragment.setWSCopy(actualImage, url, onGoingTripDetails.getTripResponse().getTripDetails().getId());
 
-                    } catch (IOException e) {
-                        Toast.makeText(HomeActivity.this, "Image not Readable. Try Agin!", Toast.LENGTH_SHORT).show();
-                        e.printStackTrace();
                     }
-
                   /*  try {
                         Bitmap bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -1421,11 +1528,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         e.printStackTrace();
                     }*/
                     break;
-                }
             }
         }
     }
+    public String saveImage(Bitmap myBitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+        File dir = new File(getExternalFilesDir(null), IMAGE_DIRECTORY);
+        // have the object build the directory structure, if needed.
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
 
+        try {
+            File f = new File(dir, Calendar.getInstance()
+                    .getTimeInMillis() + ".jpg");
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            MediaScannerConnection.scanFile(this,
+                    new String[]{f.getPath()},
+                    new String[]{"image/jpeg"}, null);
+            fo.close();
+            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
+
+            return f.getAbsolutePath();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return "";
+    }
     @Override
     public void onClick(View view) {
         if (view.getId() == R.id.tripBtnLayout) {
@@ -1466,14 +1598,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onPODSelect() {
-        checkStoragePermissionForUpload(RC_STORAGE_PERM_POD);
+        TYPE_OF_IMG_REQ  = PICK_POD_IMG_REQ;
+        checkStoragePermissionForUpload(RC_STORAGE_PERM_IMAGE_PICKUP);
     }
 
     @Override
     public void onWSSelect() {
-        checkStoragePermissionForUpload(RC_STORAGE_PERM_WS);
+        TYPE_OF_IMG_REQ  = PICK_WS_IMG_REQ;
+        checkStoragePermissionForUpload(RC_STORAGE_PERM_IMAGE_PICKUP);
     }
-
+    @Override
+    public void onPODBackSelect() {
+        TYPE_OF_IMG_REQ  = PICK_POD_IMG_BACK_REQ;
+        checkStoragePermissionForUpload(RC_STORAGE_PERM_IMAGE_PICKUP);
+    }
     @Override
     public void onTripComplete() {
         directionViewImg.setVisibility(View.INVISIBLE);
@@ -1499,6 +1637,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
+
     private void checkStoragePermissionForUpload(int rcStoragePerm) {
         hasStoragePermission = EasyPermissions.hasPermissions(this, STORAGE_PERMISSION);
         if (!hasStoragePermission) {
@@ -1507,11 +1647,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     getString(R.string.rationale_storage),
                     rcStoragePerm,
                     STORAGE_PERMISSION);
-        } else if (rcStoragePerm == RC_STORAGE_PERM_POD) {
-            pickPODFromGallery();
-        } else {
-            pickWSFromGallery();
+        } else if (rcStoragePerm == RC_STORAGE_PERM_IMAGE_PICKUP) {
+            showImagePickDialog();
+           // pickPODFromGallery();
         }
+    }
+
+    private void pickPODBackFromGallery() {
+        Intent intent = new Intent();
+// Show only images, no videos or anything else
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+// Always show the chooser (if there are multiple options available)
+        startActivityForResult(intent,PICK_POD_IMG_BACK_REQ);
     }
 
     private void pickPODFromGallery() {
@@ -1639,6 +1789,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStop() {
         super.onStop();
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(
+                ReloadBroadCastReceiver);*/
+        if(reloadBroadCastReceiver!=null)
+        unregisterReceiver(reloadBroadCastReceiver);
         Log.d("LDHOME ", "HOME on stop " + mBound);
         //   mRequestingLocationUpdates = true;
         if (mBound) {
@@ -1660,7 +1814,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             bindService(new Intent(this, LoadXLocationUpdatesService.class), mServiceConnection,
                     Context.BIND_AUTO_CREATE);
-//            mService.requestLocationUpdates();
+            mService.requestLocationUpdates();
         } catch (Exception e) {
             Log.d("LDHOME ", "On START");
             e.printStackTrace();
@@ -1688,5 +1842,59 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.w(TAG, errorMessage);
         }
     }
+    public class ReloadBroadCastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    reFormatContainerView();
+                    startLocationUpdates();
+                }
+            });
 
+        }
+    };
+
+    private void showImagePickDialog(){
+        final Dialog imagePickDialog = new Dialog(HomeActivity.this);
+        imagePickDialog.setContentView(R.layout.alert_dialog_image_selection);
+        imagePickDialog.setTitle("Choose image from");
+        LinearLayout cameraLayout = (LinearLayout)imagePickDialog.findViewById(R.id.captureCameraLayout);
+        LinearLayout galleryLayout = (LinearLayout)imagePickDialog.findViewById(R.id.galleryLayout);
+        cameraLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imagePickDialog.dismiss();
+                IMG_SELECTED_VIA = CAMERA;
+                takePhotoFromCamera();
+            }
+        });
+        galleryLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imagePickDialog.dismiss();
+                // choosePhotoFromGallary();
+                IMG_SELECTED_VIA = GALLERY;
+                pickImageFromGallery();
+            }
+        });
+        imagePickDialog.show();
+
+    }
+    private void takePhotoFromCamera() {
+        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, TYPE_OF_IMG_REQ);
+    }
+    private void pickImageFromGallery() {
+        Intent intent = new Intent();
+// Show only images, no videos or anything else
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+        // Always show the chooser (if there are multiple options available)
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), TYPE_OF_IMG_REQ);
+
+    }
 }

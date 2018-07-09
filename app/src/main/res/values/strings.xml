@@ -89,4 +89,7 @@
     <string name="un_load_details">Unloading details</string>
     <string name="retry">RETRY</string>
     <string name="txt_service_request_failed">There seems a problem updating the trip details.This may be due to poor internet connectivity.</string>
+    <string name="choose_image">Choose image from</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
 </resources>

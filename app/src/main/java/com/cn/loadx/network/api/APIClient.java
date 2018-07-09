@@ -12,10 +12,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 
-/**
- * Created by anupamchugh on 05/01/17.
- */
-
 public class APIClient {
 
     public static final String BASE_URL = "http://codeneuron.com/api/loadx/v3/";
@@ -35,6 +31,7 @@ public class APIClient {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .client(okHttpClient)
+                    .addConverterFactory(new NullOnEmptyConverterFactory())
                     .addConverterFactory(ScalarsConverterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
@@ -42,3 +39,4 @@ public class APIClient {
         return retrofit;
     }
 }
+

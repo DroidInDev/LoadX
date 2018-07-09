@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/toolbar"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="5dp"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -36,32 +36,34 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:layout_marginEnd="15dp"
-            android:gravity="center_horizontal">
+            android:gravity="start">
 
             <TextView
                 android:id="@+id/txtDriverName"
                 android:layout_width="200dp"
-                android:layout_height="60dp"
+                android:layout_height="30dp"
                 android:hint="@string/driver_name"
                 android:background="@color/white"
-                android:gravity="center_vertical"
+                android:gravity="start"
+                android:layout_marginStart="@dimen/_20sdp"
                 android:singleLine="true"
-                android:textSize="14sp" />
+                android:textColor="@color/black"
+                android:textSize="16sp" />
 
-            <ImageView
+            <!--<ImageView
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="25dp"
                 android:layout_toEndOf="@id/txtDriverName"
                 android:src="@drawable/add_icon"
-                android:visibility="invisible" />
-            <ImageView
+                android:visibility="gone" />-->
+            <!--<ImageView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@id/txtDriverName"
                 android:layout_marginEnd="15dp"
-                android:src="@drawable/edit_txt_line" />
+                android:src="@drawable/edit_txt_line" />-->
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/layoutLicenseNo"
@@ -99,120 +101,151 @@
                 android:layout_marginEnd="15dp"
                 android:src="@drawable/edit_txt_line" />
         </RelativeLayout>
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutLicense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
+            android:orientation="vertical"
             android:gravity="center_horizontal">
+
+
+            <FrameLayout
+                android:id="@+id/framelayoutLicense"
+                android:layout_width="120dp"
+                android:layout_height="110dp">
+                <ImageView
+                    android:id="@+id/licenseImg"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="centerCrop"
+                    android:src ="@drawable/placeholder_img"/>
+
+                <ImageView
+                    android:id="@+id/imgGetLicence"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="end|bottom"
+                    android:layout_marginTop="55dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="getLicenseCopyImage"
+                    android:src="@drawable/add_icon" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/txtLicense"
                 android:layout_width="200dp"
-                android:layout_height="60dp"
+                android:layout_height="20dp"
                 android:gravity="center_vertical"
                 android:hint="@string/licence_copy"
                 android:textSize="12sp" />
-
-            <ImageView
-                android:id="@+id/imgGetLicence"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="25dp"
-                android:layout_toEndOf="@id/txtLicense"
-                android:clickable="true"
-                android:focusable="true"
-                android:onClick="getLicenseCopyImage"
-                android:src="@drawable/add_icon" />
-
             <ImageView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/txtLicense"
                 android:layout_marginEnd="15dp"
                 android:src="@drawable/edit_txt_line" />
-        </RelativeLayout>
+        </LinearLayout>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutPanCopy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_3sdp"
             android:gravity="center_horizontal">
+            <FrameLayout
+                android:layout_width="120dp"
+                android:layout_height="110dp">
+                <ImageView
+                    android:id="@+id/panImg"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="centerCrop"
+                    android:src ="@drawable/placeholder_img"/>
+                <ImageView
+                    android:id="@+id/imgPanCopy"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="end|bottom"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="getPanCopyImage"
+                    android:src="@drawable/add_icon" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/txtPanCopy"
                 android:layout_width="200dp"
-                android:layout_height="60dp"
+                android:layout_height="20dp"
                 android:gravity="center_vertical"
                 android:hint="@string/pan_copy"
                 android:textSize="12sp" />
 
-            <ImageView
-                android:id="@+id/imgPanCopy"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="25dp"
-                android:layout_toEndOf="@id/txtPanCopy"
-                android:clickable="true"
-                android:focusable="true"
-                android:onClick="getPanCopyImage"
-                android:src="@drawable/add_icon" />
+
 
             <ImageView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/txtPanCopy"
                 android:layout_marginEnd="15dp"
                 android:src="@drawable/edit_txt_line" />
-        </RelativeLayout>
+        </LinearLayout>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/layoutPhoto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_marginStart="15dp"
+            android:layout_marginTop="@dimen/_3sdp"
+            android:orientation="vertical"
             android:gravity="center_horizontal">
+            <FrameLayout
+                android:layout_width="120dp"
+                android:layout_height="110dp">
+                <ImageView
+                    android:id="@+id/photoImg"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:scaleType="centerCrop"
+                    android:src ="@drawable/placeholder_img"/>
 
+                <ImageView
+                    android:id="@+id/imgPhoto"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="end|bottom"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="getUserPhoto"
+                    android:src="@drawable/add_icon" />
+
+            </FrameLayout>
             <TextView
                 android:id="@+id/txtPhoto"
                 android:layout_width="200dp"
-                android:layout_height="60dp"
+                android:layout_height="20dp"
                 android:gravity="center_vertical"
                 android:hint="@string/photo"
                 android:textSize="12sp" />
 
-            <ImageView
-                android:id="@+id/imgPhoto"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="25dp"
-                android:layout_toEndOf="@id/txtPhoto"
-                android:clickable="true"
-                android:focusable="true"
-                android:onClick="getUserPhoto"
-                android:src="@drawable/add_icon" />
 
             <ImageView
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/txtPhoto"
                 android:layout_marginEnd="15dp"
                 android:src="@drawable/edit_txt_line" />
-        </RelativeLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/btnSubmit"
             android:layout_width="130dp"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="15dp"
             android:background="@drawable/button_bg"
             android:gravity="center"
             android:onClick="submitProfileData"
@@ -225,7 +258,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:onClick="skipToHome"
             android:text="@string/skip"

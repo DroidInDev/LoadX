@@ -10,4 +10,5 @@ public interface LoadListener {
     void onWSSelect();
     void onTripComplete();
     void onLoadDetailUpdated();
+    void onPODBackSelect();
 }

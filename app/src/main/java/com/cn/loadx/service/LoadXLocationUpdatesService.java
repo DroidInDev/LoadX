@@ -57,6 +57,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.cn.loadx.util.AppConstants.DRIVER_ID;
 import static com.cn.loadx.util.AppConstants.KEY_DEST_ADDRESS;
 import static com.cn.loadx.util.AppConstants.KEY_TRIP_ID;
 import static com.cn.loadx.util.AppConstants.KEY_TRIP_STATUS;
@@ -174,8 +175,9 @@ public class LoadXLocationUpdatesService extends Service {
             CharSequence name = getString(R.string.app_name);
             // Create the channel for the notification
             NotificationChannel mChannel =
-                    new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
-
+                    new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW);
+            mChannel.enableVibration(false);
+            mChannel.enableLights(false);
             // Set the Notification Channel for the Notification Manager.
             mNotificationManager.createNotificationChannel(mChannel);
         }
@@ -300,6 +302,9 @@ public class LoadXLocationUpdatesService extends Service {
                 notificationTittle ="On Going trip to "+destAddress;
             else if(tripStatus.equals(TR_COMPLETE))
                 notificationTittle ="Yet to be Assigned for the Trip";
+            else{
+                notificationTittle ="Waiting for trip";
+            }
         }
         Intent intent = new Intent(this, LoadXLocationUpdatesService.class);
 
@@ -329,6 +334,7 @@ public class LoadXLocationUpdatesService extends Service {
                 //setPriority(Notification.PRIORITY_HIGH)
                 .setShowWhen(false)
                 .setColor(Color.RED)
+                .setDefaults(0)
                 .setSmallIcon(R.drawable.loadx_appicon);
 
         // Set the Channel ID for Android O.
@@ -375,9 +381,10 @@ public class LoadXLocationUpdatesService extends Service {
 
     private void updateLocationToServer(Location location) {
         String tripID = SharedPrefsUtils.getStringPreference(LoadXLocationUpdatesService.this,KEY_TRIP_ID);
+        int driverId = SharedPrefsUtils.getIntegerPreference(LoadXLocationUpdatesService.this,DRIVER_ID,0);
         String latitude = String.valueOf(location.getLatitude());
         String longitude = String.valueOf(location.getLongitude());
-        Call<TripStatus> setLocationUpdate = apiInterface.setRouteUpdateStatus(tripID,latitude,longitude);
+        Call<TripStatus> setLocationUpdate = apiInterface.setRouteUpdateStatus(String.valueOf(driverId),tripID,latitude,longitude);
         setLocationUpdate.enqueue(new Callback<TripStatus>() {
             @Override
             public void onResponse(Call<TripStatus> call, Response<TripStatus> response) {

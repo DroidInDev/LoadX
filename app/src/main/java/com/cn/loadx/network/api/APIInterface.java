@@ -10,6 +10,9 @@ import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
+import static com.cn.loadx.util.AppConstants.KEY_LOADING_IN_TIME;
+import static com.cn.loadx.util.AppConstants.KEY_LOADING_OUT_TIME;
+
 
 public interface APIInterface {
 
@@ -41,15 +44,15 @@ public interface APIInterface {
 
     @FormUrlEncoded
     @POST("updateloadingdetails")
-    Call<TripStatus> getLoadingSTatus(@Field("trip_id") String tripId, @Field("loading_weight_slip") String loadingWeight,@Field("lr_copy") String lrCOpy);
+    Call<TripStatus> getLoadingSTatus(@Field("trip_id") String tripId, @Field("loading_weight_slip") String loadingWeight,@Field("lr_copy") String lrCOpy,@Field("lr_copy_back") String lrCOpyBack,@Field(KEY_LOADING_IN_TIME) String inTime,@Field(KEY_LOADING_OUT_TIME)String outTIme);
 
     @FormUrlEncoded
     @POST("updateunloadingdetails")
-    Call<TripStatus> getUnLloadingSTatus(@Field("trip_id") String tripId, @Field("unloading_weight_slip") String loadingWeight,@Field("pod_copy") String lrCOpy);
+    Call<TripStatus> getUnLloadingSTatus(@Field("trip_id") String tripId, @Field("unloading_weight_slip") String loadingWeight,@Field("pod_copy") String lrCOpy,@Field("pod_copy_back") String lrCOpyBack,@Field(KEY_LOADING_IN_TIME) String inTime,@Field(KEY_LOADING_OUT_TIME)String outTIme);
 
     @FormUrlEncoded
     @POST("roteupdate")
-    Call<TripStatus> setRouteUpdateStatus(@Field("trip_id") String tripId, @Field("latitude") String latitude, @Field("longitude") String longitude);
+    Call<TripStatus> setRouteUpdateStatus(@Field("driver_id") String driverId,@Field("trip_id") String tripId, @Field("latitude") String latitude, @Field("longitude") String longitude);
 
 
     //https://stackoverflow.com/questions/21026409/fragment-transaction-animation-slide-in-and-slide-out

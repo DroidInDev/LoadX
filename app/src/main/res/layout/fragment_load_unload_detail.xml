@@ -202,15 +202,50 @@
                     android:layout_marginEnd="@dimen/_5sdp"
                     android:src="@drawable/edit_txt_line" />
             </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/layoutPODCopyBack"
+                android:layout_width="@dimen/_250sdp"
+                android:layout_height="@dimen/_45sdp"
+                android:layout_below="@+id/layoutPODCopy"
+                android:gravity="center_horizontal">
 
+                <TextView
+                    android:id="@+id/txtPODCopyBack"
+                    android:layout_width="@dimen/_180sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:background="@color/white"
+                    android:gravity="center_vertical"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:layout_alignParentBottom="true"
+                    android:hint="@string/pod_copy"
+                    android:textSize="12sp" />
+
+                <ImageView
+                    android:id="@+id/imgAddPodCopyBack"
+                    android:layout_width="@dimen/_35sdp"
+                    android:layout_height="@dimen/_35sdp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_toEndOf="@+id/txtPODCopyBack"
+                    android:gravity="center_vertical"
+                    android:src="@drawable/add_icon"
+                    android:visibility="visible" />
+
+                <ImageView
+                    android:layout_width="@dimen/_180sdp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/txtPODCopyBack"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:src="@drawable/edit_txt_line" />
+            </RelativeLayout>
             <TextView
                 android:id="@+id/btnLoadSubmit"
                 android:layout_width="@dimen/_90sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_marginTop="@dimen/_25sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
-                android:layout_below="@+id/layoutPODCopy"
-                android:layout_alignStart="@+id/layoutPODCopy"
+                android:layout_below="@+id/layoutPODCopyBack"
+                android:layout_alignStart="@+id/layoutPODCopyBack"
                 android:layout_gravity="center"
                 android:layout_marginStart="@dimen/_67sdp"
                 android:background="@drawable/button_bg"

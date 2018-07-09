@@ -31,6 +31,7 @@ import com.cn.loadx.interfaces.TripListener;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -246,6 +247,18 @@ public class ApplicationUtil {
     }
     public static String getExtension(String path){
       return   path.substring(path.lastIndexOf("."));
+    }
+
+    public static String getDatenTime(){
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+        return df.format(c.getTime());
+    }
+    public static String getDateInTime(){
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.HOUR, -1);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.getDefault());
+        return df.format(c.getTime());
     }
 
 }

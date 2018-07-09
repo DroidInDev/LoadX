@@ -8,6 +8,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.internal.Constants;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.cn.loadx.R;
+import com.cn.loadx.activity.HomeActivity;
 import com.cn.loadx.customUserInterface.LoadingIndicatorView;
 import com.cn.loadx.interfaces.ImageCompressListener;
 import com.cn.loadx.interfaces.LoadListener;
@@ -52,11 +54,17 @@ import static com.cn.loadx.network.util.AWSConstants.AWS_UPLOAD_STATE_COMPLETE;
 import static com.cn.loadx.network.util.AWSConstants.AWS_UPLOAD_STATE_FAILED;
 import static com.cn.loadx.util.AppConstants.DRIVER_ID;
 import static com.cn.loadx.util.AppConstants.EMPTY_STRING;
+import static com.cn.loadx.util.AppConstants.KEY_DRI_IMG_URL;
+import static com.cn.loadx.util.AppConstants.KEY_LOADING_IN_TIME;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_DETAIL_UPDATED;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_LR;
+import static com.cn.loadx.util.AppConstants.KEY_LOAD_LR_BACK;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_LR_URL;
+import static com.cn.loadx.util.AppConstants.KEY_LOAD_LR_URL_BACK;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_POD;
+import static com.cn.loadx.util.AppConstants.KEY_LOAD_POD_BACK;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_POD_URL;
+import static com.cn.loadx.util.AppConstants.KEY_LOAD_POD_URL_BACK;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_WEIGHT;
 import static com.cn.loadx.util.AppConstants.KEY_LOAD_WEIGHT_URL;
 import static com.cn.loadx.util.AppConstants.KEY_TRIP_ID;
@@ -65,10 +73,14 @@ import static com.cn.loadx.util.AppConstants.KEY_UN_LOAD_DETAIL_UPDATED;
 import static com.cn.loadx.util.AppConstants.KEY_UN_LOAD_WEIGHT;
 import static com.cn.loadx.util.AppConstants.KEY_UN_LOAD_WEIGHT_URL;
 import static com.cn.loadx.util.AppConstants.LR;
+import static com.cn.loadx.util.AppConstants.LR_BACK;
 import static com.cn.loadx.util.AppConstants.LR_COPY;
+import static com.cn.loadx.util.AppConstants.LR_COPY_BACK;
 import static com.cn.loadx.util.AppConstants.LWS;
 import static com.cn.loadx.util.AppConstants.POD;
+import static com.cn.loadx.util.AppConstants.POD_BACK;
 import static com.cn.loadx.util.AppConstants.POD_COPY;
+import static com.cn.loadx.util.AppConstants.POD_COPY_BACK;
 import static com.cn.loadx.util.AppConstants.TR_COMPLETE;
 import static com.cn.loadx.util.AppConstants.TR_ONGOING;
 import static com.cn.loadx.util.AppConstants.TR_SCHEDULED;
@@ -114,6 +126,11 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
     private AWSUtil awsUtil;
     private Uri imgUri;
 
+    private TextView txtPODCopyBack;
+    private ImageView imgBtnPODCopyBack;
+    String podImgStringBack;
+    private File podImgFileBack;
+    File podImgFIleCompressedBack;
     public static LoadUnLoadFragment newInstance(String loadType) {
         LoadUnLoadFragment loadUnLoadFragment = new LoadUnLoadFragment();
         Bundle args = new Bundle();
@@ -166,21 +183,29 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
         loadingIndicatorView = loadUnloadView.findViewById(R.id.animatedLoader);
         loadingIndicatorView.smoothToHide();
 
+        txtPODCopyBack = loadUnloadView.findViewById(R.id.txtPODCopyBack);
+        imgBtnPODCopyBack = loadUnloadView.findViewById(R.id.imgAddPodCopyBack);
+        imgBtnPODCopyBack.setOnClickListener(this);
+
         if (loadType.equals(TR_SCHEDULED)) {
             txtLoadDetail.setText(getString(R.string.load_details));
             txtPODCopy.setHint(LR_COPY);
+            txtPODCopyBack.setHint(LR_COPY_BACK);
             boolean isLoadUpdated = SharedPrefsUtils.getBooleanPreference(getActivity(), KEY_LOAD_DETAIL_UPDATED, false);
             if (isLoadUpdated) {
                 txtBtnSubmit.setVisibility(View.INVISIBLE);
                 imgBtnPODCopy.setEnabled(false);
+                imgBtnPODCopyBack.setEnabled(false);
                 /*txtLoadingCharge.setFocusable(false);
                 txtloadWeight.setFocusable(false);
                 txtloadWeight.setText(SharedPrefsUtils.getStringPreference(getActivity(),KEY_LOAD_WEIGHT));
                 txtLoadingCharge.setText(SharedPrefsUtils.getStringPreference(getActivity(),KEY_LOAD_CHARGE));*/
                 txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_LR_URL));
+                txtPODCopyBack.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_LR_URL_BACK));
             } else {
                 txtBtnSubmit.setVisibility(View.VISIBLE);
                 imgBtnPODCopy.setEnabled(true);
+                imgBtnPODCopyBack.setEnabled(true);
                /* txtLoadingCharge.setFocusable(true);
                 txtloadWeight.setFocusable(true);*/
             }
@@ -190,33 +215,44 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             Log.d("LDHOME in", LWS);
             txtLoadDetail.setText(getString(R.string.load_details));
             txtPODCopy.setHint(LR_COPY);
+            txtPODCopyBack.setHint(LR_COPY_BACK);
             imgBtnWS.setVisibility(View.VISIBLE);
             imgBtnPODCopy.setVisibility(View.INVISIBLE);
+            imgBtnPODCopyBack.setVisibility(View.INVISIBLE);
             txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), AppConstants.KEY_LOAD_LR_URL));
+            txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), AppConstants.KEY_LOAD_LR_URL_BACK));
             SharedPrefsUtils.setBooleanPreference(getActivity(), KEY_LOAD_DETAIL_UPDATED, false);
         } else if (loadType.equals(ULWS)) {
             Log.d("LDHOME in", ULWS);
             txtLoadDetail.setText(getString(R.string.un_load_details));
             txtPODCopy.setHint(POD_COPY);
+            txtPODCopyBack.setHint(POD_COPY_BACK);
             imgBtnPODCopy.setVisibility(View.INVISIBLE);
+            imgBtnPODCopyBack.setVisibility(View.INVISIBLE);
             imgBtnWS.setVisibility(View.VISIBLE);
             txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_POD_URL));
+            txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_POD_URL_BACK));
             SharedPrefsUtils.setBooleanPreference(getActivity(), KEY_UN_LOAD_DETAIL_UPDATED, false);
         } else if (loadType.equals(LR)) {
             Log.d("LDHOME in", LR);
             txtLoadDetail.setText(getString(R.string.load_details));
             txtPODCopy.setHint(LR_COPY);
+            txtPODCopyBack.setHint(LR_COPY_BACK);
             imgBtnPODCopy.setVisibility(View.VISIBLE);
+            imgBtnPODCopyBack.setVisibility(View.VISIBLE);
             imgBtnWS.setVisibility(View.INVISIBLE);
             txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_LR_URL));
+            txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_LR_URL_BACK));
             SharedPrefsUtils.setBooleanPreference(getActivity(), KEY_LOAD_DETAIL_UPDATED, false);
 
         } else if (loadType.equals(POD)) {
             Log.d("LDHOME in", POD);
             txtLoadDetail.setText(R.string.un_load_details);
             txtPODCopy.setHint(POD_COPY);
+            txtPODCopyBack.setHint(POD_COPY_BACK);
             imgBtnWS.setVisibility(View.INVISIBLE);
             imgBtnPODCopy.setVisibility(View.VISIBLE);
+            imgBtnPODCopyBack.setVisibility(View.VISIBLE);
             txtWS.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT_URL));
             SharedPrefsUtils.setBooleanPreference(getActivity(), KEY_UN_LOAD_DETAIL_UPDATED, false);
         }
@@ -229,15 +265,20 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
     private void showUnloadDetail() {
         txtLoadDetail.setText(R.string.un_load_details);
         txtPODCopy.setHint(POD_COPY);
+        txtPODCopyBack.setHint(POD_COPY_BACK);
         boolean isLoadUpdated = SharedPrefsUtils.getBooleanPreference(getActivity(), KEY_UN_LOAD_DETAIL_UPDATED, false);
         if (isLoadUpdated) {
             imgBtnPODCopy.setVisibility(View.INVISIBLE);
+            imgBtnPODCopyBack.setVisibility(View.INVISIBLE);
             txtBtnSubmit.setVisibility(View.INVISIBLE);
             imgBtnPODCopy.setEnabled(false);
+            imgBtnPODCopyBack.setEnabled(false);
             imgBtnWS.setVisibility(View.INVISIBLE);
             txtPODCopy.setText("");
+            txtPODCopyBack.setText("");
             txtWS.setText("");
             txtPODCopy.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_POD_URL));
+            txtPODCopyBack.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOAD_POD_URL_BACK));
             txtWS.setText(SharedPrefsUtils.getStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT_URL));
             /*txtLoadingCharge.setFocusable(false);
             txtloadWeight.setFocusable(false);
@@ -250,13 +291,19 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             imgBtnWS.setVisibility(View.VISIBLE);
             imgBtnPODCopy.setVisibility(View.VISIBLE);
             imgBtnPODCopy.setEnabled(true);
+            imgBtnPODCopyBack.setVisibility(View.VISIBLE);
+            imgBtnPODCopyBack.setEnabled(true);
             imgBtnWS.setEnabled(true);
             txtPODCopy.setText("");
+            txtPODCopyBack.setText("");
             txtWS.setText("");
             wSImgString = "";
             podImgString = "";
             podImgFile = null;
             wsImgFile = null;
+            podImgStringBack="";
+            podImgFileBack = null;
+            podImgFIleCompressedBack = null;
             wsImgFileCompressed =null;
             podImgFIleCompressed = null;
             /*txtLoadingCharge.setFocusable(true);
@@ -302,6 +349,8 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             loadListener.onPODSelect();
         } else if (view.getId() == R.id.imgAddWS) {
             loadListener.onWSSelect();
+        }else if (view.getId() == R.id.imgAddPodCopyBack) {
+            loadListener.onPODBackSelect();
         }
     }
 
@@ -317,15 +366,27 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
                     }
                     if (imageCategory.equals(LR)) {
                         podImgFIleCompressed = compressedImg;
+                        compressImage(podImgFileBack, LR_BACK);
+                        //uploadLoadToAWS(wsImgFileCompressed, LWS);
+                        //callUpdateLoadDetail();
+                    }if (imageCategory.equals(LR_BACK)) {
+                        podImgFIleCompressedBack = compressedImg;
                         uploadLoadToAWS(wsImgFileCompressed, LWS);
                         //callUpdateLoadDetail();
                     }
+
                     if (imageCategory.equals(ULWS)) {
                         wsImgFileCompressed = compressedImg;
                         compressImage(podImgFile, POD);
                     }
                     if (imageCategory.equals(POD)) {
                         podImgFIleCompressed = compressedImg;
+                        compressImage(podImgFileBack,POD_BACK);
+                        //uploadLoadToAWS(wsImgFileCompressed, ULWS);
+                        //callUpdateUnLoadDetail();
+                    }
+                    if (imageCategory.equals(POD_BACK)) {
+                        podImgFIleCompressedBack = compressedImg;
                         uploadLoadToAWS(wsImgFileCompressed, ULWS);
                         //callUpdateUnLoadDetail();
                     }
@@ -346,7 +407,13 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             return;
         }
         Log.d(ApplicationUtil.APPTAG,"ws "+wSImgString+"LR "+podImgString);
-        Call<TripStatus> call = apiInterface.getLoadingSTatus(tripId, wSImgString, podImgString);
+        String inTIme = SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOADING_IN_TIME);
+        if(TextUtils.isEmpty(inTIme)){
+            inTIme = ApplicationUtil.getDateInTime();
+        }
+          //  inTIme = EMPTY_STRING;
+        String outTime = ApplicationUtil.getDatenTime();
+        Call<TripStatus> call = apiInterface.getLoadingSTatus(tripId, wSImgString, podImgString,podImgStringBack,inTIme,outTime);
         call.enqueue(new Callback<TripStatus>() {
             @Override
             public void onResponse(Call<TripStatus> call, Response<TripStatus> response) {
@@ -367,7 +434,10 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_WEIGHT_URL, txtWS.getText().toString());
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_URL, txtPODCopy.getText().toString());
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR, podImgString);
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_URL_BACK, txtPODCopyBack.getText().toString());
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_BACK, podImgStringBack);
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_WEIGHT, wSImgString);
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOADING_IN_TIME,EMPTY_STRING);
                       /*  txtLoadingCharge.setFocusable(false);
                         txtloadWeight.setFocusable(false);
                         SharedPrefsUtils.setStringPreference(getActivity(),KEY_LOAD_CHARGE,loadCharge);
@@ -432,7 +502,11 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             return;
         }
         Log.d(ApplicationUtil.APPTAG,"ws "+wSImgString+"LR "+podImgString);
-        Call<TripStatus> call = apiInterface.getUnLloadingSTatus(tripId, wSImgString, podImgString);
+        String inTIme = SharedPrefsUtils.getStringPreference(getActivity(), KEY_LOADING_IN_TIME);
+        if(TextUtils.isEmpty(inTIme)){
+            inTIme = ApplicationUtil.getDateInTime();
+        }
+        Call<TripStatus> call = apiInterface.getUnLloadingSTatus(tripId, wSImgString, podImgString,podImgStringBack,inTIme,ApplicationUtil.getDatenTime());
         call.enqueue(new Callback<TripStatus>() {
             @Override
             public void onResponse(Call<TripStatus> call, Response<TripStatus> response) {
@@ -454,7 +528,10 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT_URL, txtWS.getText().toString());
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_URL, txtPODCopy.getText().toString());
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD, podImgString);
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_URL_BACK, txtPODCopyBack.getText().toString());
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_BACK, podImgStringBack);
                         SharedPrefsUtils.setStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT, wSImgString);
+                        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOADING_IN_TIME,EMPTY_STRING);
                         callTripComplete();
                     }
                 }
@@ -525,11 +602,15 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_WEIGHT_URL, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_URL, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD, EMPTY_STRING);
+        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_URL_BACK, EMPTY_STRING);
+        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_POD_BACK, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_WEIGHT, EMPTY_STRING);
 
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT_URL, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_URL, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR, EMPTY_STRING);
+        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_URL_BACK, EMPTY_STRING);
+        SharedPrefsUtils.setStringPreference(getActivity(), KEY_LOAD_LR_BACK, EMPTY_STRING);
         SharedPrefsUtils.setStringPreference(getActivity(), KEY_UN_LOAD_WEIGHT, EMPTY_STRING);
     }
 
@@ -594,7 +675,13 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
         // podImgString = encodedString;
         tripId = String.valueOf(strTripId);
     }
-
+    public void setPODBackCopy(File imgFIle, String url, Integer strTripId) {
+        String filename = url.substring(url.lastIndexOf("/") + 1);
+        txtPODCopyBack.setText(filename);
+        podImgFileBack = imgFIle;
+        // podImgString = encodedString;
+        tripId = String.valueOf(strTripId);
+    }
     public void setWSCopy(File imgFIle, String url, int id) {
         String filename = url.substring(url.lastIndexOf("/") + 1);
         txtWS.setText(filename);
@@ -683,12 +770,18 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             }else if(type.equals(LR)){
                 fileName = LR+"_"+ApplicationUtil.getTimeStamp(tripId)+ext;
                 podImgString = fileName;
+            }else if(type.equals(LR_BACK)){
+                fileName = LR_BACK+"_"+ApplicationUtil.getTimeStamp(tripId)+ext;
+                podImgStringBack = fileName;
             }else if(type.equals(ULWS)){
                 fileName = ULWS+"_"+ApplicationUtil.getTimeStamp(tripId)+ext;
                 wSImgString = fileName;
             }else if(type.equals(POD)){
                 fileName = POD+"_"+ApplicationUtil.getTimeStamp(tripId)+ext;
                 podImgString = fileName;
+            }else if(type.equals(POD_BACK)){
+                fileName = POD_BACK+"_"+ApplicationUtil.getTimeStamp(tripId)+ext;
+                podImgStringBack = fileName;
             }
             TransferObserver observer = transferUtility.upload(AWSConstants.BUCKET_NAME, fileName,
                     file, CannedAccessControlList.PublicRead);
@@ -699,6 +792,8 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
             Log.d(ApplicationUtil.APPTAG, " upload " + e.getMessage());
         }
     }
+
+
 
     /*
     * A TransferListener class that can listen to a upload task and be notified
@@ -731,11 +826,18 @@ public class LoadUnLoadFragment extends Fragment implements View.OnClickListener
                     uploadLoadToAWS(podImgFIleCompressed,LR);
                 }else if(type.equals(LR))
                 {
+                    uploadLoadToAWS(podImgFIleCompressedBack,LR_BACK);
+                    //callUpdateLoadDetail();
+                }else if(type.equals(LR_BACK))
+                {
                     callUpdateLoadDetail();
                 }else if(type.equals(ULWS)){
                     uploadLoadToAWS(podImgFIleCompressed,POD);
                 }
                 else if(type.equals(POD)){
+                    uploadLoadToAWS(podImgFIleCompressedBack,POD_BACK);
+                    //callUpdateUnLoadDetail();
+                }else if(type.equals(POD_BACK)){
                     callUpdateUnLoadDetail();
                 }
                 Log.d(ApplicationUtil.APPTAG, " upload Suceess");

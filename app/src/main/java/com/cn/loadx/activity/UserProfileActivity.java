@@ -1,11 +1,14 @@
 package com.cn.loadx.activity;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,14 +16,18 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,8 +58,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import id.zelory.compressor.Compressor;
 import pub.devrel.easypermissions.AppSettingsDialog;
@@ -68,6 +78,7 @@ import static com.cn.loadx.util.AppConstants.DRIVER_ID;
 import static com.cn.loadx.util.AppConstants.DRIVER_LICENSE_IMG;
 import static com.cn.loadx.util.AppConstants.DRIVER_NAME;
 import static com.cn.loadx.util.AppConstants.EMPTY_STRING;
+import static com.cn.loadx.util.AppConstants.IMAGE_DIRECTORY;
 import static com.cn.loadx.util.AppConstants.KEY_DRI_IMG_URL;
 import static com.cn.loadx.util.AppConstants.KEY_IS_PROFILE_UPDATED;
 import static com.cn.loadx.util.AppConstants.LICENSE_UPDATE_STATUS;
@@ -91,6 +102,11 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
     private static final int PICK_PAN_IMG_REQ = 3000;
     private static final int PICK_LICENSE_IMG_REQ = 3001;
     private static final int PICK_PHOTO_IMG_REQ = 3002;
+    private static final int GALLERY = 2;
+    private static final int CAMERA = 1;
+    private int TYPE_OF_IMG_REQ;
+    private int IMG_SELECTED_VIA;
+
     private static final String TAG = "UserProfileActivity";
     ImageView imgLicense;
     private ImageView imgPan;
@@ -106,10 +122,10 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
     LoadingIndicatorView loadingIndicatorView;
     private File actualImage;
     private File compressedImage;
-    private RelativeLayout layoutPANCopy;
-    private RelativeLayout layoutPhoto;
+    private LinearLayout layoutPANCopy;
+    private LinearLayout layoutPhoto;
     String update =null;
-    private RelativeLayout layoutLicense;
+    private LinearLayout layoutLicense;
     private EditText txtLicenseNo;
     private RelativeLayout layoutLicenseNo;
     //AWS declaration
@@ -119,6 +135,9 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
     private AWSUtil awsUtil;
     boolean enableSkip;
     private TextView skipBtn;
+    private ImageView licenseImg;
+    private ImageView panImage;
+    private ImageView photoImage;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -136,9 +155,9 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
         imgLicense = (ImageView) findViewById(R.id.imgGetLicence);
         imgPan = (ImageView) findViewById(R.id.imgPanCopy);
         imgPhoto = (ImageView) findViewById(R.id.imgPhoto);
-        layoutPANCopy  =(RelativeLayout)findViewById(R.id.layoutPanCopy);
-        layoutPhoto =(RelativeLayout)findViewById(R.id.layoutPhoto);
-        layoutLicense  = (RelativeLayout)findViewById(R.id.layoutLicense);
+        layoutPANCopy  =(LinearLayout)findViewById(R.id.layoutPanCopy);
+        layoutPhoto =(LinearLayout)findViewById(R.id.layoutPhoto);
+        layoutLicense  = (LinearLayout)findViewById(R.id.layoutLicense);
        /* imgLicense.setEnabled(false);
         imgPan.setEnabled(false);
         imgPhoto.setEnabled(false);*/
@@ -152,6 +171,11 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
         txtDriverName.setText(driverName);
         skipBtn = findViewById(R.id.btnSkip);
         skipBtn.setVisibility(View.INVISIBLE);
+
+        //Actual image selected
+        licenseImg = (ImageView)findViewById(R.id.licenseImg);
+        panImage = (ImageView)findViewById(R.id.panImg);
+        photoImage = (ImageView)findViewById(R.id.photoImg);
 
         initAWS();
         Intent userIntent = getIntent();
@@ -225,15 +249,11 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
        // enableImageFetchButtons();
         switch (requestCode){
             case PICK_LICENSE_IMG_REQ:
-                pickImageFromGallery(PICK_LICENSE_IMG_REQ);
-                break;
-            case PICK_PAN_IMG_REQ:
-                pickImageFromGallery(PICK_PAN_IMG_REQ);
-                break;
             case PICK_PHOTO_IMG_REQ:
-                pickImageFromGallery(PICK_PHOTO_IMG_REQ);
+            case PICK_PAN_IMG_REQ:
+                showImagePickDialog();
                 break;
-                default:
+            default:
                     break;
         }
 
@@ -260,16 +280,20 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
 
 
     public void getPanCopyImage(View view) {
+        TYPE_OF_IMG_REQ =PICK_PAN_IMG_REQ;
         if (hasStoragePermission) {
-            pickImageFromGallery(PICK_PAN_IMG_REQ);
+            showImagePickDialog();
+           // pickImageFromGallery(PICK_PAN_IMG_REQ);
         } else {
             checkStoragePermission(PICK_PAN_IMG_REQ,getString(R.string.rationale_storage_pan));
         }
     }
 
     public void getLicenseCopyImage(View view) {
+        TYPE_OF_IMG_REQ =PICK_LICENSE_IMG_REQ;
         if (hasStoragePermission) {
-            pickImageFromGallery(PICK_LICENSE_IMG_REQ);
+            showImagePickDialog();
+           // pickImageFromGallery(PICK_LICENSE_IMG_REQ);
         } else {
             checkStoragePermission(PICK_LICENSE_IMG_REQ, getString(R.string.rationale_storage_license));
         }
@@ -277,8 +301,10 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
 
 
     public void getUserPhoto(View view) {
+        TYPE_OF_IMG_REQ =PICK_PHOTO_IMG_REQ;
         if (hasStoragePermission) {
-            pickImageFromGallery(PICK_PHOTO_IMG_REQ);
+            showImagePickDialog();
+           // pickImageFromGallery(PICK_PHOTO_IMG_REQ);
         } else {
             checkStoragePermission(PICK_PHOTO_IMG_REQ, getString(R.string.rationale_storage_photo));
         }
@@ -530,13 +556,13 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
 
     }
 
-    private void pickImageFromGallery(int requestCode) {
+    private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK);
-// Show only images, no videos or anything else
+        // Show only images, no videos or anything else
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-// Always show the chooser (if there are multiple options available)
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), requestCode);
+        // Always show the chooser (if there are multiple options available)
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), TYPE_OF_IMG_REQ);
 
     }
 
@@ -545,15 +571,31 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("LDHOME "," onActivityResult "+requestCode +" "+resultCode);
         if(requestCode==PICK_LICENSE_IMG_REQ||requestCode==PICK_PHOTO_IMG_REQ||requestCode==PICK_PAN_IMG_REQ) {
-            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                Uri uri = data.getData();
-                String url = uri.toString();
-                String path = null;
-                try {
-                   path = new FilePathUtil().getPath(uri,UserProfileActivity.this);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
+            Uri uri = data.getData();
+            String url = null;
+            String path = null;
+            Bitmap thumbnail = null;
+            if(IMG_SELECTED_VIA==GALLERY) {
+                if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                    try {
+                        url = uri.toString();
+                        thumbnail = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+                        path = new FilePathUtil().getPath(uri, UserProfileActivity.this);
+                        url = FileUtil.getFileName(UserProfileActivity.this, uri);
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
+            }
+            if(IMG_SELECTED_VIA==CAMERA){
+                thumbnail  = (Bitmap) data.getExtras().get("data");
+                path = saveImage(thumbnail);
+                url = path;
+            }
                /* try {
                     actualImage = FileUtil.from(this, data.getData());
                     compressedImage = new Compressor(this)
@@ -580,25 +622,27 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
                 if (!dir.exists()) {
                     dir.mkdirs();
                 }*/
-                    url = FileUtil.getFileName(UserProfileActivity.this, uri);
+
 
                     switch (requestCode) {
                         case PICK_PAN_IMG_REQ:
                       /*  File fileUserPan;
                         fileUserPan=writeImageByteToFile(UserProfileActivity.this,byteArray,PAN_IMG);*/
-
+                            panImage.setImageBitmap(thumbnail);
                             hashMap.put(PICK_PAN_IMG_REQ, path);
                             setImageUrl(PICK_PAN_IMG_REQ, url);
                             break;
                         case PICK_LICENSE_IMG_REQ:
                        /* File fileUserLicense;
                         fileUserLicense=writeImageByteToFile(UserProfileActivity.this,byteArray,DRIVER_LICENSE_IMG);*/
+                            licenseImg.setImageBitmap(thumbnail);
                             hashMap.put(PICK_LICENSE_IMG_REQ, path);
                             setImageUrl(PICK_LICENSE_IMG_REQ, url);
                             break;
                         case PICK_PHOTO_IMG_REQ:
                         /*File fileUserPhoto;
                         fileUserPhoto=writeImageByteToFile(UserProfileActivity.this,byteArray,USER_PHOTO_IMG);*/
+                            photoImage.setImageBitmap(thumbnail);
                             hashMap.put(PICK_PHOTO_IMG_REQ, path);
                             setImageUrl(PICK_PHOTO_IMG_REQ, url);
                             break;
@@ -615,10 +659,36 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
                 return;
             }*/
 
-            }
+
         }
     }
+    public String saveImage(Bitmap myBitmap) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        myBitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+        File dir = new File(getExternalFilesDir(null), IMAGE_DIRECTORY);
+        // have the object build the directory structure, if needed.
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
 
+        try {
+            File f = new File(dir, Calendar.getInstance()
+                    .getTimeInMillis() + ".jpg");
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            MediaScannerConnection.scanFile(this,
+                    new String[]{f.getPath()},
+                    new String[]{"image/jpeg"}, null);
+            fo.close();
+            Log.d("TAG", "File Saved::--->" + f.getAbsolutePath());
+
+            return f.getAbsolutePath();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return "";
+    }
     public File writeImageByteToFile(Context context, byte[] imgByte, String fileName) {
         String fullPath = APP_TEMP_PATH;
         File dir = new File(context.getExternalFilesDir(null), fullPath);
@@ -714,5 +784,36 @@ public class UserProfileActivity extends AppCompatActivity implements EasyPermis
         final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    private void showImagePickDialog(){
+        final Dialog imagePickDialog = new Dialog(UserProfileActivity.this);
+        imagePickDialog.setContentView(R.layout.alert_dialog_image_selection);
+        imagePickDialog.setTitle("Choose image from");
+        LinearLayout cameraLayout = (LinearLayout)imagePickDialog.findViewById(R.id.captureCameraLayout);
+        LinearLayout galleryLayout = (LinearLayout)imagePickDialog.findViewById(R.id.galleryLayout);
+        cameraLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imagePickDialog.dismiss();
+                IMG_SELECTED_VIA = CAMERA;
+                takePhotoFromCamera();
+            }
+        });
+        galleryLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                imagePickDialog.dismiss();
+               // choosePhotoFromGallary();
+                IMG_SELECTED_VIA = GALLERY;
+                pickImageFromGallery();
+            }
+        });
+        imagePickDialog.show();
+
+    }
+    private void takePhotoFromCamera() {
+        Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, TYPE_OF_IMG_REQ);
     }
 }

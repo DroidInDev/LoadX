@@ -28,6 +28,9 @@ public class AppConstants {
     public static final String KEY_USER_NAME ="driverName";
     public static final String KEY_DRI_IMG_URL ="driverPhotoUrl";
 
+    public static final String KEY_LOADING_IN_TIME ="loading_in_time";
+    public static final String KEY_LOADING_OUT_TIME ="loading_out_time";
+
 
     public static final String LICENSE_UPDATE_STATUS ="licenseStatus";
     public static final String PAN_UPDATE_SATUS ="panStatus";
@@ -42,10 +45,14 @@ public class AppConstants {
     public static final String KEY_LOAD_WEIGHT ="loadWeight";
     public static final String KEY_LOAD_CHARGE ="loadCharge";
     public static final String KEY_LOAD_POD ="loadPOD";
+    public static final String KEY_LOAD_POD_BACK ="loadPODBack";
     public static final String KEY_LOAD_LR ="loadLR";
+    public static final String KEY_LOAD_LR_BACK ="loadLRBack";
     public static final String KEY_UN_LOAD_WEIGHT ="unloadWeight";
     public static final String KEY_LOAD_POD_URL ="loadPODUrl";
+    public static final String KEY_LOAD_POD_URL_BACK ="loadPODUrlBack";
     public static final String KEY_LOAD_LR_URL="loadLRUrl";
+    public static final String KEY_LOAD_LR_URL_BACK="loadLRUrl";
     public static final String KEY_UN_LOAD_WEIGHT_URL ="un_weight_url";
     public static final String KEY_LOAD_WEIGHT_URL ="l_weight_url";
     public static final String KEY_DEST_ADDRESS ="destinationAddress";
@@ -58,9 +65,13 @@ public class AppConstants {
     public static final String LWS ="LWS";
     public static final String ULWS ="ULWS";
     public static final String LR ="LR";
+    public static final String LR_BACK ="LR_BACK";
     public static final String POD ="POD";
-    public static final String LR_COPY ="LR Copy";
+    public static final String POD_BACK ="POD_BACK";
+    public static final String LR_COPY ="LR Copy front";
+    public static final String LR_COPY_BACK ="LR Copy back";
     public static final String POD_COPY ="POD Copy";
+    public static final String POD_COPY_BACK ="POD Copy back";
 
 
 
@@ -86,4 +97,5 @@ public class AppConstants {
     public static String CUSTOMER_CARE_NO="1800-121-1470";
 
     public static String EMPTY_STRING="";
+    public static String IMAGE_DIRECTORY="/LoadX";
 }
